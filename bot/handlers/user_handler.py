@@ -106,6 +106,9 @@ loader = instaloader.Instaloader()
 async def download_instagram_content(url):
     """Downloads Instagram stories, reels, posts, or photos and returns the file path, caption, and username."""
     try:
+        # Initialize Instaloader
+        loader = instaloader.Instaloader()
+
         # Extract shortcode from URL
         shortcode = url.split("/")[-2]
         post = instaloader.Post.from_shortcode(loader.context, shortcode)
@@ -122,28 +125,31 @@ async def download_instagram_content(url):
         loader.download_post(post, target=save_path)
 
         # Find the downloaded file
-        files = []
         media_file = None
+        video, photo = None, None  # ✅ Ensure variables are initialized
+
         for file in os.listdir(save_path):
-            files.append(file)
+            file_path = os.path.join(save_path, file)
 
-        for file in files:
             if file.endswith(".mp4"):
-                video = file
-                files.remove(file)
-            if file.endswith((".jpg", ".jpeg", ".png")):
-                photo = file
-                files.remove(file)
+                video = file_path
+            elif file.endswith((".jpg", ".jpeg", ".png")):
+                photo = file_path
 
-        if photo:
-            media_file = os.path.join(save_path, photo)
-
+        # Determine which media file to return
         if video:
-            os.remove(media_file)
-            media_file = os.path.join(save_path, video)
+            media_file = video
+            if photo and os.path.exists(photo):
+                os.remove(photo)  # Delete photo if video is available
+        elif photo:
+            media_file = photo
 
-        for file in files:
-            os.remove(os.path.join(save_path, file))
+        # Clean up extra files
+        for file in os.listdir(save_path):
+            file_path = os.path.join(save_path, file)
+            if file_path != media_file:
+                os.remove(file_path)
+
         return media_file, username, caption
 
     except Exception as e:
