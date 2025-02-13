@@ -12,6 +12,8 @@ import requests
 from urllib.parse import urlparse
 import yt_dlp
 import instaloader
+import asyncio
+
 
 user_router = Router()
 
@@ -64,14 +66,16 @@ async def cmd_handle_messages(messag: types.Message):
             #     await download_from_spotify(msg, messag.text)
             case "instagram":
                 msg = await msg.edit_text("📸 wait for download from Instagram...")
-                await download_from_instagram(msg, messag.text)
+                asyncio.create_task(download_from_instagram(msg, messag.text))
 
             case "youtube" | "youtu":
                 msg = await msg.edit_text("🎥 wait for download from Youtube...")
-                await download_from_youtube(msg, messag.text)
+                asyncio.create_task(download_from_youtube(msg, messag.text))
+
             case "soundcloud":
                 msg = await msg.edit_text("🎶 wait for download from SoundCloud...")
-                await download_from_soundcloud(msg, messag.text)
+
+                asyncio.create_task(download_from_soundcloud(msg, messag.text))
             case _:
                 msg = await msg.edit_text("🤔 sorry, this url is not supported yet...")
 
