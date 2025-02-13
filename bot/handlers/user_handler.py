@@ -3,7 +3,6 @@ from aiogram import Router, types
 from aiogram.types import InputMediaAudio, FSInputFile, InputMediaVideo, InputMediaPhoto
 from aiogram.utils.markdown import hbold
 from ..config import BotConfig
-import validators
 import tldextract
 import os
 import subprocess
@@ -13,6 +12,7 @@ from urllib.parse import urlparse
 import yt_dlp
 import instaloader
 import asyncio
+import re
 
 
 user_router = Router()
@@ -58,7 +58,10 @@ async def cmd_dice(message: types.Message):
 @user_router.message()
 async def cmd_handle_messages(messag: types.Message):
     msg = await messag.reply("⌛ wait for analys data...")
-    if validators.url(messag.text):
+    url_pattern = r"https?://\S+"
+    text = messag.text
+    urls = re.findall(url_pattern, text)
+    if len(urls) > 0:
         name = tldextract.extract(messag.text).domain
         match name:
             # case "spotify":
@@ -66,18 +69,20 @@ async def cmd_handle_messages(messag: types.Message):
             #     await download_from_spotify(msg, messag.text)
             case "instagram":
                 msg = await msg.edit_text("📸 wait for download from Instagram...")
-                asyncio.create_task(download_from_instagram(msg, messag.text))
+                asyncio.create_task(download_from_instagram(msg, urls[0]))
 
             case "youtube" | "youtu":
                 msg = await msg.edit_text("🎥 wait for download from Youtube...")
-                asyncio.create_task(download_from_youtube(msg, messag.text))
+                asyncio.create_task(download_from_youtube(msg, urls[0]))
 
             case "soundcloud":
                 msg = await msg.edit_text("🎶 wait for download from SoundCloud...")
 
-                asyncio.create_task(download_from_soundcloud(msg, messag.text))
+                asyncio.create_task(download_from_soundcloud(msg, urls[0]))
             case _:
                 msg = await msg.edit_text("🤔 sorry, this url is not supported yet...")
+    else:
+        msg = await msg.edit_text("☹️ sorry, this is not an Url.")
 
 
 # sp = spotipy.Spotify()
