@@ -62,7 +62,7 @@ async def cmd_handle_messages(messag: types.Message):
     text = messag.text
     urls = re.findall(url_pattern, text)
     if len(urls) > 0:
-        name = tldextract.extract(messag.text).domain
+        name = tldextract.extract(urls[0]).domain
         match name:
             # case "spotify":
             #     msg = await msg.edit_text("🎶 wait for download from Spotify...")
